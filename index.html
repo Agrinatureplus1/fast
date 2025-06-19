@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agri Nature Plus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      background: linear-gradient(to bottom, #eafbea, #fdfce5, #e3f2fd);
+    }
+    header {
+      background: #4CAF50;
+      color: white;
+      padding: 1em;
+      text-align: center;
+      position: relative;
+    }
+    h1 {
+      margin: 0.2em 0;
+    }
+    .lang-select {
+      position: absolute;
+      top: 1em;
+      right: 1em;
+      padding: 4px;
+      border-radius: 5px;
+      font-size: 1em;
+      z-index: 10;
+    }
+    .products {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1em;
+      padding: 1em;
+      background: linear-gradient(135deg, #f0f8ff, #e0ffe0, #fdf5e6);
+    }
+    .product {
+      border: 2px solid #4CAF50;
+      border-radius: 10px;
+      padding: 1em;
+      width: 250px;
+      background: white;
+    }
+    .product img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .product h4 {
+      color: #7e22ce;
+      margin-bottom: 0.2em;
+    }
+    .benefit {
+      font-size: 0.9em;
+      color: #555;
+      font-style: italic;
+    }
+    .cart, .client-info, .payment {
+      max-width: 500px;
+      margin: auto;
+      margin-bottom: 1em;
+      padding: 1em;
+      background: white;
+      border: 2px solid #4CAF50;
+      border-radius: 10px;
+    }
+    input, button {
+      width: 100%;
+      margin-top: 0.5em;
+      padding: 0.5em;
+      border-radius: 5px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .total {
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-top: 1em;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 2em;
+      padding-bottom: 1em;
+    }
+  </style>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log("✅ Service worker registered"))
+        .catch(err => console.error("Service worker error:", err));
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1 id="mainTitle">BIENVENUE SUR AGRI NATURE PLUS EN LIGNE</h1>
+    <select class="lang-select" onchange="changeLang(this.value)">
+      <option value="fr">🇫🇷 Français</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="es">🇪🇸 Español</option>
+      <option value="de">🇩🇪 Deutsch</option>
+    </select>
+  </header>
+
+  <section class="products" id="productList"></section>
+
+  <section class="cart">
+    <h2>🛒 Panier</h2>
+    <ul id="cartItems"></ul>
+    <div class="total">
+      Total : <span id="totalPrice">0</span> FCFA | <span id="totalPi">0</span> π
+    </div>
+  </section>
+
+  <section class="client-info">
+    <h3>🧍 Informations Client</h3>
+    <input type="text" id="clientName" placeholder="Nom complet">
+    <input type="text" id="clientPhone" placeholder="Téléphone WhatsApp">
+  </section>
+
+  <section class="payment">
+    <h3>💳 Paiement</h3>
+    <button onclick="payWithFedaPay()">Payer avec FedaPay</button>
+    <p><strong>Paiement Pi Network :</strong></p>
+    <p>Adresse : <input id="piAddress" value="GA34QTXX7K6Q2GEHKLTSO46MD7D3APZWFB4M3N73W2ZD4TXHOSCS7T76" readonly onclick="this.select()"> <button onclick="copyPiAddress()">Copier</button></p>
+    <p>Envoyez le montant exact en π affiché ci-dessus, puis l'ID via <a href="https://wa.me/2290194999521" target="_blank">WhatsApp</a>.</p>
+  </section>
+
+  <footer>
+    📍 Quartier Kantaborifa, Natitingou – 📞 +229 0194999521 – ✉️ agrinatureplus.info@gmail.com
+  </footer>
+
+  <script src="https://cdn.fedapay.com/checkout.js"></script>
+  <script>
+    const translations = {
+  "fr": {
+    "title": "BIENVENUE SUR AGRI NATURE PLUS EN LIGNE",
+    "products": [
+      "Chips de patates douces",
+      "Chips de banane plantain",
+      "Chips de taro",
+      "Chips de soja",
+      "Cacahouètes de soja",
+      "Chips de pomme de terre",
+      "Chips de manioc",
+      "Huile de baobab",
+      "Biscuit de baobab",
+      "Croustilles de gingembre",
+      "Thé de menthe nature",
+      "Chips de fonio",
+      "Farine enrichie"
+    ],
+    "benefits": [
+      "Riche en antioxydants",
+      "Énergie naturelle",
+      "Aide digestion",
+      "Protéines végétales",
+      "Nutritif et riche en fibres",
+      "Énergie rapide",
+      "Sans gluten et digeste",
+      "Nourrit et hydrate la peau",
+      "Apport énergétique sain",
+      "Booste l’immunité",
+      "Apaise et rafraîchit",
+      "Bonne pour le cœur",
+      "Aliment complet"
+    ]
+  },
+  "en": {
+    "title": "WELCOME TO AGRI NATURE PLUS ONLINE",
+    "products": [
+      "Sweet Potato Chips",
+      "Plantain Chips",
+      "Taro Chips",
+      "Soy Chips",
+      "Soy Peanuts",
+      "Potato Chips",
+      "Cassava Chips",
+      "Baobab Oil",
+      "Baobab Biscuit",
+      "Ginger Crisps",
+      "Mint Tea",
+      "Fonio Chips",
+      "Enriched Flour"
+    ],
+    "benefits": [
+      "Rich in antioxidants",
+      "Natural energy",
+      "Aids digestion",
+      "Plant-based proteins",
+      "Nutritious and high in fiber",
+      "Fast energy",
+      "Gluten-free and easy to digest",
+      "Nourishes and hydrates skin",
+      "Healthy energy source",
+      "Boosts immunity",
+      "Soothes and refreshes",
+      "Heart-friendly",
+      "Complete food"
+    ]
+  },
+  "es": {
+    "title": "BIENVENIDO A AGRI NATURE PLUS EN LÍNEA",
+    "products": [
+      "Chips de batata",
+      "Chips de plátano",
+      "Chips de taro",
+      "Chips de soya",
+      "Cacahuetes de soya",
+      "Chips de papa",
+      "Chips de yuca",
+      "Aceite de baobab",
+      "Galleta de baobab",
+      "Crujientes de jengibre",
+      "Té de menta",
+      "Chips de fonio",
+      "Harina enriquecida"
+    ],
+    "benefits": [
+      "Rico en antioxidantes",
+      "Energía natural",
+      "Favorece la digestión",
+      "Proteínas vegetales",
+      "Nutritivo y rico en fibra",
+      "Energía rápida",
+      "Sin gluten y fácil de digerir",
+      "Nutre e hidrata la piel",
+      "Fuente energética saludable",
+      "Refuerza la inmunidad",
+      "Alivia y refresca",
+      "Bueno para el corazón",
+      "Alimento completo"
+    ]
+  },
+  "de": {
+    "title": "WILLKOMMEN BEI AGRI NATURE PLUS ONLINE",
+    "products": [
+      "Süßkartoffelchips",
+      "Kochbananenchips",
+      "Taro-Chips",
+      "Sojachips",
+      "Soja-Erdnüsse",
+      "Kartoffelchips",
+      "Maniokchips",
+      "Baobaböl",
+      "Baobabkeks",
+      "Ingwerchips",
+      "Minztee",
+      "Fonio-Chips",
+      "Angereichertes Mehl"
+    ],
+    "benefits": [
+      "Reich an Antioxidantien",
+      "Natürliche Energie",
+      "Fördert die Verdauung",
+      "Pflanzliche Proteine",
+      "Nahrhaft und ballaststoffreich",
+      "Schnelle Energie",
+      "Glutenfrei und leicht verdaulich",
+      "Pflegt und hydratisiert die Haut",
+      "Gesunde Energiequelle",
+      "Stärkt das Immunsystem",
+      "Beruhigt und erfrischt",
+      "Herzfreundlich",
+      "Vollständige Nahrung"
+    ]
+  }
+};
+
+    const prices = [2000, 1000, 2500, 500, 1000, 2000, 500, 2500, 600, 700, 800, 500, 2500];
+    let currentLang = "fr";
+    let cart = [];
+
+    function renderProducts() {
+      const list = document.getElementById("productList");
+      list.innerHTML = "";
+      translations[currentLang].products.forEach((name, i) => {
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `
+          <img src="https://via.placeholder.com/250x150?text=${encodeURIComponent(name)}" alt="${name}">
+          <h4>${name}</h4>
+          <p>${prices[i]} FCFA | ${(prices[i]/100000000).toFixed(8)} π</p>
+          <p class="benefit">${translations[currentLang].benefits[i]}</p>
+          <input type="number" id="qty-${i}" value="1" min="1">
+          <button onclick="addToCart(${i})">Ajouter</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function addToCart(index) {
+      const qty = parseInt(document.getElementById(`qty-${index}`).value);
+      for (let i = 0; i < qty; i++) cart.push(index);
+      renderCart();
+    }
+
+    function renderCart() {
+      const cartItems = document.getElementById("cartItems");
+      cartItems.innerHTML = "";
+      let total = 0;
+      cart.forEach(index => {
+        total += prices[index];
+        const li = document.createElement("li");
+        li.textContent = `${translations[currentLang].products[index]} - ${prices[index]} FCFA`;
+        cartItems.appendChild(li);
+      });
+      document.getElementById("totalPrice").textContent = total;
+      document.getElementById("totalPi").textContent = (total / 100000000).toFixed(8);
+    }
+
+    function changeLang(lang) {
+      currentLang = lang;
+      document.getElementById("mainTitle").innerText = translations[lang].title;
+      renderProducts();
+      renderCart();
+    }
+
+    function copyPiAddress() {
+      const input = document.getElementById("piAddress");
+      input.select();
+      document.execCommand("copy");
+      alert("Adresse Pi copiée !");
+    }
+
+    function payWithFedaPay() {
+      const amount = parseInt(document.getElementById("totalPrice").textContent);
+      const name = document.getElementById("clientName").value;
+      const phone = document.getElementById("clientPhone").value;
+      if (!name || !phone) return alert("Veuillez remplir vos infos client.");
+      const checkout = window.FedaPay.init({
+        public_key: "pk_live_GZ9XidrcooX9ci8v0PE3jPYk",
+        transaction: {
+          amount: amount,
+          description: "Commande Agri Nature Plus",
+          customer: {
+            firstname: name,
+            phone_number: phone
+          }
+        }
+      });
+      checkout.open();
+    }
+
+    window.onload = renderProducts;
+  </script>
+</body>
+</html>
